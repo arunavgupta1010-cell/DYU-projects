@@ -1,0 +1,12 @@
+#ifndef UART_TTL_H
+#define UART_TTL_H
+
+#include "stm32l0xx_hal.h"
+#include <stdint.h>
+
+void uart_ttl_init(UART_HandleTypeDef *huart);
+void uart_ttl_send(UART_HandleTypeDef *huart,
+                   const char *msg);
+void uart_ttl_receive(UART_HandleTypeDef *huart);
+
+#endif /* UART_TTL_H */
