@@ -22,8 +22,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include <string.h>
-#include <usart.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,26 +44,31 @@ UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t rx_buf[36];
+uint8_t rx_buf[100];
+uint8_t rx_done = 0;
+uint16_t rx_size = 0;
+
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_LPUART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_LPUART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int __io_putchar(int ch)
-{
-    HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+int __io_putchar(int ch) {
+    HAL_UART_Transmit(&hlpuart1,
+                      (uint8_t*)&ch,
+                      1, HAL_MAX_DELAY);
     return ch;
 }
+
 
 /* USER CODE END 0 */
 
@@ -98,31 +101,28 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_LPUART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_LPUART1_UART_Init();
+
   /* USER CODE BEGIN 2 */
-  char msg[] = "Hello World from LPUART1!\r\n";
-  HAL_UART_Transmit(&hlpuart1,
-                    (uint8_t *)msg,
-                    strlen(msg),
-                    HAL_MAX_DELAY);
+  printf("\r\nNUCLEO L010RB Ready!\r\n");
 
-  printf("Echo test ready! Type something...\r\n");
-
+  // Interrupt receive start karo
+  HAL_UARTEx_ReceiveToIdle_IT(
+      &huart2,
+      rx_buf,
+      sizeof(rx_buf));
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // Direct string test
-
   while (1)
   {
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
-	   /* USER CODE END 3 */
+    /* USER CODE END 3 */
 }
 
 /**
@@ -281,6 +281,28 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void HAL_UARTEx_RxEventCallback(
+         UART_HandleTypeDef *huart,
+         uint16_t Size) {
+
+    if (huart->Instance == USART2) {
+        rx_size = Size;
+        rx_done = 1;
+
+        // Echo back
+#if 1
+        HAL_UART_Transmit_IT(&huart2,rx_buf,Size);
+#endif
+        printf("\r\nReceived %d bytes: %.*s\r\n",
+               Size, Size, rx_buf);
+
+        // Restart
+        HAL_UARTEx_ReceiveToIdle_IT(
+            &huart2,
+            rx_buf,
+            sizeof(rx_buf));
+    }
+}
 /* USER CODE END 4 */
 
 /**

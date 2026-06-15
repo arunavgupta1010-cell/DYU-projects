@@ -1,4 +1,4 @@
-**/Debug/
+Debug/
 Release/
 *.o
 *.exe
@@ -6,5 +6,5 @@ Release/
 *.tmp
 .vscode/
 *.launch
-*.settings
-*.metadata
+.settings
+.metadata
