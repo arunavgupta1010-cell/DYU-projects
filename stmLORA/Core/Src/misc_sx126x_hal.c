@@ -53,11 +53,8 @@ bool misc_sx126x_hal_ready(uint32_t timeout)
 
 bool misc_sx126x_hal_init(uint16_t nss, uint16_t busy, uint16_t dio1, uint16_t reset)
 {
-
-    HAL_GPIO_WritePin(LORA_NSS_GPIO_Port, LORA_NSS_Pin,GPIO_PIN_SET);
-
-    HAL_GPIO_WritePin(LORA_RESET_GPIO_Port, LORA_RESET_Pin,GPIO_PIN_RESET);
-
+    HAL_GPIO_WritePin(LORA_NSS_GPIO_Port, LORA_NSS_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LORA_RESET_GPIO_Port, LORA_RESET_Pin, GPIO_PIN_SET);
     return true;
 }
 
@@ -84,73 +81,72 @@ bool misc_sx162x_hal_write(const uint8_t *command, const uint16_t command_length
     status = misc_sx126x_hal_ready(MODEM_TIMEOUT);
     if (status == false)
     {
-       printf("WARNING: SX126X is BUSY\r\n");
+        printf("WARNING: SX126X is BUSY\r\n");
         return false;
     }
 
-    status = misc_sx126x_hal_select();
-    if (status == false)
+    if (misc_sx126x_hal_select() == false)
     {
         return false;
     }
 
     if (command_length > 0)
     {
-    	if(HAL_SPI_Transmit(&hspi1,(uint8_t *)command, command_length, SPI_TIMEOUT)!= HAL_OK)
-    	{
-            printf("misc  command transmit write failed\r\n");
+        if (HAL_SPI_Transmit(&hspi1, (uint8_t *)command, command_length, SPI_TIMEOUT) != HAL_OK)
+        {
+            printf("misc command transmit write failed\r\n");
+            misc_sx126x_hal_deselect();
             return false;
-    	      }
-           }
+        }
+    }
     if (data_length > 0)
     {
-    	if(HAL_SPI_Transmit(&hspi1,(uint8_t *)data, data_length, SPI_TIMEOUT)!= HAL_OK)
-    	{
-    	            printf("misc data transmit write failed\r\n");
-    	            return false;
-    	    	      }
+        if (HAL_SPI_Transmit(&hspi1, (uint8_t *)data, data_length, SPI_TIMEOUT) != HAL_OK)
+        {
+            printf("misc data transmit write failed\r\n");
+            misc_sx126x_hal_deselect();
+            return false;
+        }
     }
 
     status = misc_sx126x_hal_deselect();
-
     return status;
 }
 
 bool misc_sx162x_hal_read(const uint8_t *command, const uint16_t command_length,
                           uint8_t *data, const uint16_t data_length)
 {
-
     bool status = misc_sx126x_hal_ready(MODEM_TIMEOUT);
 
     if (status == false)
     {
-        printf( "WARNING: SX126X is BUSY\r\n");
+        printf("WARNING: SX126X is BUSY\r\n");
         return false;
     }
 
-    status = misc_sx126x_hal_select();
-    if (status == false)
+    if (misc_sx126x_hal_select() == false)
     {
         return false;
     }
 
     if (command_length > 0)
     {
-    	if(HAL_SPI_Transmit(&hspi1,(uint8_t *)command, command_length, SPI_TIMEOUT)!= HAL_OK)
-    			{
-                   printf("misc transmit ready failed\r\n");
-                   return false;
-    			}
-    	           }
+        if (HAL_SPI_Transmit(&hspi1, (uint8_t *)command, command_length, SPI_TIMEOUT) != HAL_OK)
+        {
+            printf("misc transmit ready failed\r\n");
+            misc_sx126x_hal_deselect();
+            return false;
+        }
+    }
 
     if (data_length > 0)
     {
-    	if(HAL_SPI_Receive(&hspi1,(uint8_t *)data, data_length, SPI_TIMEOUT)!= HAL_OK)
-    	{
-    		printf("misc received ready failed\r\n");
-    		return false;
-    	}
-    }
+        if (HAL_SPI_Receive(&hspi1, (uint8_t *)data, data_length, SPI_TIMEOUT) != HAL_OK)
+        {
+            printf("misc received ready failed\r\n");
+            misc_sx126x_hal_deselect();
+            return false;
+        }
 
     status = misc_sx126x_hal_deselect();
     return status;
@@ -171,25 +167,19 @@ bool misc_sx126x_hal_reset(void)
 
 bool misc_sx126x_hal_wakeup(void)
 {
-    bool status;
-
-    status = misc_sx126x_hal_reset();
-    if (status == false)
+    if (misc_sx126x_hal_select() == false)
     {
         return false;
     }
 
-    status = misc_sx126x_hal_select();
-    if (status == false)
+    HAL_Delay(2);
+
+    if (misc_sx126x_hal_deselect() == false)
+    {
         return false;
+    }
 
-    HAL_Delay(1);
-
-    status = misc_sx126x_hal_deselect();
-    if (status == false)
-        return false;
-
-    return true;
+    return misc_sx126x_hal_ready(MODEM_TIMEOUT);
 }
 
 bool misc_sx126x_hal_deinit()

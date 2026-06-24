@@ -771,7 +771,9 @@ sx126x_status_t sx126x_set_bpsk_pkt_params(const void *context, const sx126x_pkt
     return sx126x_write_register(context, 0x00F0, buf2, sizeof(buf2));
 }
 
-sx126x_status_t sx126x_set_lora_pkt_params(const void *context, const sx126x_pkt_params_lora_t *params)
+sx126x_status_t 
+
+sx126x_set_lora_pkt_params(const void *context, const sx126x_pkt_params_lora_t *params)
 {
     const uint8_t buf[SX126X_SIZE_SET_PKT_PARAMS_LORA] = {
         SX126X_SET_PKT_PARAMS,
