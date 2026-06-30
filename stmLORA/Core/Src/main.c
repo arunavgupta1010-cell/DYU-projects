@@ -24,6 +24,8 @@
 #include "misc_sx126x.h"
 #include <stdio.h>
 #include <string.h>
+#include "sx126x.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -70,6 +72,13 @@ int _write(int file, char *ptr, int len)
     HAL_UART_Transmit(&huart1, (uint8_t *)ptr, len, HAL_MAX_DELAY);
     return len;
 }
+void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
+{
+    if(GPIO_Pin == LORA_DIO1_Pin)
+    {
+        misc_sx126x_irq_cb();
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -108,8 +117,9 @@ int main(void)
     HAL_GPIO_WritePin(GPIOF, GPIO_PIN_1, GPIO_PIN_RESET);
     HAL_Delay(500);
 
-misc_sx126x_init(NULL);
-printf("STM32G070 Ready!\r\n");
+    misc_sx126x_init(NULL);
+    printf("STM32G070 Ready!\r\n");
+
 int count = 0;
 
   /* USER CODE END 2 */
@@ -122,13 +132,22 @@ int count = 0;
 
     /* USER CODE BEGIN 3 */
 	  printf("Hello from ST-Link! Count = %d\r\n", count);
+	  printf("Hello from TTL! Count = %d\r\n", count);
+       count++;
+	 	  HAL_Delay(3000);
 
-	 	  char buf[48];
-	 	  int len = snprintf(buf, sizeof(buf), "Hello from TTL! Count = %d\r\n", count);
-	 	  HAL_UART_Transmit(&huart1, (uint8_t *)buf, len, HAL_MAX_DELAY);
+	 	 uint8_t msg[] = "Hello LoRa";
 
-	 	  count++;
-	 	  HAL_Delay(1000);
+	 	    if(misc_sx126x_transmit(msg, sizeof(msg) - 1, 5000))
+	 	    {
+	 	        printf("TX Success\r\n");
+	 	    }
+	 	    else
+	 	    {
+	 	        printf("TX Failed\r\n");
+	 	    }
+
+	 	    HAL_Delay(5000);
 
 
   }
@@ -194,7 +213,7 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;

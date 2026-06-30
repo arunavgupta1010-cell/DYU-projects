@@ -1,4 +1,4 @@
-/*
+ /*
  * misc_sx126x_hal.c
  *
  *  Created on: May 20, 2025
@@ -139,7 +139,7 @@ bool misc_sx162x_hal_read(const uint8_t *command, const uint16_t command_length,
         }
     }
 
-    if (data_length > 0)
+     if (data_length > 0)
     {
         if (HAL_SPI_Receive(&hspi1, (uint8_t *)data, data_length, SPI_TIMEOUT) != HAL_OK)
         {
@@ -147,21 +147,24 @@ bool misc_sx162x_hal_read(const uint8_t *command, const uint16_t command_length,
             misc_sx126x_hal_deselect();
             return false;
         }
-
+    }
     status = misc_sx126x_hal_deselect();
     return status;
 }
 
 bool misc_sx126x_hal_reset(void)
 {
+
     HAL_GPIO_WritePin(LORA_RESET_GPIO_Port, LORA_RESET_Pin,GPIO_PIN_RESET);
 
 
     HAL_Delay(1);
 
+
     HAL_GPIO_WritePin(LORA_RESET_GPIO_Port, LORA_RESET_Pin,GPIO_PIN_SET);
 
-    HAL_Delay(6);
+    HAL_Delay(10);
+
     return true;
 }
 
